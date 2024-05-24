@@ -1,0 +1,7 @@
+#pragma version 10
+
+smart_contracts.register.contract.Register.clear_state_program:
+    // register/contract.py:13
+    // class Register(ARC4Contract):
+    int 1
+    return
