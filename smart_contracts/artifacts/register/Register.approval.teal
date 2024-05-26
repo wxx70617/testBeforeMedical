@@ -162,22 +162,22 @@ register:
     frame_dig -8
     swap
     box_create
-    // register/contract.py:30
+    // register/contract.py:31
     // if success == False:
     bnz register_else_body@2
-    // register/contract.py:31
+    // register/contract.py:32
     // return String("User registration failed because existed")
     byte "User registration failed because existed"
     swap
     retsub
 
 register_else_body@2:
-    // register/contract.py:33
+    // register/contract.py:34
     // op.Box.put(id.bytes, user.bytes)
     frame_dig -8
     frame_dig 0
     box_put
-    // register/contract.py:34
+    // register/contract.py:35
     // return String("User registration success")
     byte "User registration success"
     swap
