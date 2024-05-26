@@ -1,29 +1,36 @@
 #pragma version 10
 
 smart_contracts.hello_world.contract.HelloWorld.approval_program:
-    // hello_world/contract.py:4
+    // hello_world/contract.py:7
     // class HelloWorld(ARC4Contract):
     txn NumAppArgs
     bz main_bare_routing@5
-    method "hello(string)string"
+    method "hello(string,string)string"
     txna ApplicationArgs 0
     match main_hello_route@2
     err // reject transaction
 
 main_hello_route@2:
-    // hello_world/contract.py:5
+    // hello_world/contract.py:8
     // @arc4.abimethod()
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // hello_world/contract.py:4
+    // hello_world/contract.py:7
     // class HelloWorld(ARC4Contract):
     txna ApplicationArgs 1
-    // hello_world/contract.py:5
+    txna ApplicationArgs 2
+    // hello_world/contract.py:8
     // @arc4.abimethod()
     callsub hello
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
     byte 0x151f7c75
     swap
     concat
@@ -32,7 +39,7 @@ main_hello_route@2:
     return
 
 main_bare_routing@5:
-    // hello_world/contract.py:4
+    // hello_world/contract.py:7
     // class HelloWorld(ARC4Contract):
     txn OnCompletion
     !
@@ -44,23 +51,231 @@ main_bare_routing@5:
     return
 
 
-// smart_contracts.hello_world.contract.HelloWorld.hello(name: bytes) -> bytes:
+// smart_contracts.hello_world.contract.HelloWorld.hello(name: bytes, id: bytes) -> bytes:
 hello:
-    // hello_world/contract.py:5-6
+    // hello_world/contract.py:8-9
     // @arc4.abimethod()
-    // def hello(self, name: arc4.String) -> arc4.String:
-    proto 1 1
-    // hello_world/contract.py:7
-    // return "Hello, " + name
+    // def hello(self,name: arc4.String,id: arc4.String) -> String:
+    proto 2 1
+    // hello_world/contract.py:10
+    // lists = arc4.DynamicArray[arc4.String]()
+    byte 0x0000
+    // hello_world/contract.py:15
+    // lists.append(name)
+    frame_dig -2
+    int 1
+    callsub dynamic_array_concat_variable_size
+    // hello_world/contract.py:16
+    // lists.append(name)
+    frame_dig -2
+    int 1
+    callsub dynamic_array_concat_variable_size
+    // hello_world/contract.py:17
+    // lists.append(name)
+    frame_dig -2
+    int 1
+    callsub dynamic_array_concat_variable_size
+    // hello_world/contract.py:18-19
+    // #success = op.Box.create(id.bytes,200)
+    // user = User(id)
+    byte 0x0002
     frame_dig -1
-    extract 2 0
-    byte "Hello, "
-    swap
     concat
+    swap
+    // hello_world/contract.py:20
+    // contents2 = lists[0]
     dup
-    len
+    int 0
+    extract_uint16
+    dup
+    cover 2
+    assert // Index access is out of bounds
+    extract 2 0
+    // hello_world/contract.py:21-22
+    // #contents2 = arc4.String.from_bytes(lists.bytes)
+    // results = String()
+    byte ""
+    int 0
+
+hello_for_header@1:
+    // hello_world/contract.py:23
+    // for item in lists:
+    frame_dig 4
+    frame_dig 1
+    <
+    bz hello_after_for@4
+    frame_dig 4
+    dup
+    int 2
+    *
+    frame_dig 2
+    dup
+    uncover 2
+    extract_uint16
+    dup2
+    extract_uint16
+    int 2
+    +
+    extract3
+    // hello_world/contract.py:24
+    // results = String(",").join((item.native,results))
+    extract 2 0
+    byte ","
+    concat
+    frame_dig 3
+    concat
+    frame_bury 3
+    int 1
+    +
+    frame_bury 4
+    b hello_for_header@1
+
+hello_after_for@4:
+    // hello_world/contract.py:26
+    // return user.id.native
+    frame_dig 0
+    dup
+    int 0
+    extract_uint16
+    dup2
+    extract_uint16
+    int 2
+    +
+    extract3
+    extract 2 0
+    frame_bury 0
+    retsub
+
+
+// algopy_lib_arc4.dynamic_array_concat_variable_size(source: bytes, new_items_bytes: bytes, new_items_count: uint64) -> bytes:
+dynamic_array_concat_variable_size:
+    // <algopy>/algopy_lib_arc4.py:166-169
+    proto 3 1
+    // <algopy>/algopy_lib_arc4.py:179
+    frame_dig -3
+    int 0
+    extract_uint16
+    // <algopy>/algopy_lib_arc4.py:180
+    dup
+    frame_dig -1
+    +
+    swap
+    // <algopy>/algopy_lib_arc4.py:181
+    int 2
+    *
+    int 2
+    +
+    swap
+    // <algopy>/algopy_lib_arc4.py:183
+    dup
     itob
     extract 6 0
     swap
+    // <algopy>/algopy_lib_arc4.py:185
+    frame_dig -3
+    int 2
+    dig 4
+    substring3
+    // <algopy>/algopy_lib_arc4.py:186
+    frame_dig -1
+    int 2
+    *
+    bzero
+    // <algopy>/algopy_lib_arc4.py:185-186
     concat
+    // <algopy>/algopy_lib_arc4.py:187
+    frame_dig -3
+    len
+    frame_dig -3
+    uncover 5
+    uncover 2
+    substring3
+    // <algopy>/algopy_lib_arc4.py:185-187
+    concat
+    // <algopy>/algopy_lib_arc4.py:185-188
+    frame_dig -2
+    concat
+    // <algopy>/algopy_lib_arc4.py:183-192
+    swap
+    // <algopy>/algopy_lib_arc4.py:191
+    int 0
+    // <algopy>/algopy_lib_arc4.py:183-192
+    callsub recalculate_array_offsets_static
+    concat
+    retsub
+
+
+// algopy_lib_arc4.recalculate_array_offsets_static(array_data: bytes, length: uint64, start_at_index: uint64) -> bytes:
+recalculate_array_offsets_static:
+    // <algopy>/algopy_lib_arc4.py:195-198
+    proto 3 1
+    byte ""
+    dup
+    // <algopy>/algopy_lib_arc4.py:209
+    frame_dig -1
+    int 2
+    *
+    // <algopy>/algopy_lib_arc4.py:210
+    frame_dig -1
+    bnz recalculate_array_offsets_static_else_body@2
+    // <algopy>/algopy_lib_arc4.py:211
+    frame_dig -2
+    int 2
+    *
+    frame_bury 1
+    b recalculate_array_offsets_static_after_if_else@3
+
+recalculate_array_offsets_static_else_body@2:
+    // <algopy>/algopy_lib_arc4.py:213
+    frame_dig -3
+    frame_dig 2
+    extract_uint16
+    frame_bury 1
+
+recalculate_array_offsets_static_after_if_else@3:
+    frame_dig -1
+    frame_bury 0
+
+recalculate_array_offsets_static_for_header@4:
+    // <algopy>/algopy_lib_arc4.py:215
+    frame_dig 0
+    frame_dig -2
+    <
+    bz recalculate_array_offsets_static_after_for@8
+    // <algopy>/algopy_lib_arc4.py:216
+    frame_dig 1
+    dup
+    itob
+    extract 6 0
+    // <algopy>/algopy_lib_arc4.py:217
+    frame_dig -3
+    frame_dig 2
+    dup
+    cover 4
+    uncover 2
+    replace3
+    dup
+    frame_bury -3
+    // <algopy>/algopy_lib_arc4.py:218
+    dig 1
+    extract_uint16
+    int 2
+    +
+    +
+    frame_bury 1
+    // <algopy>/algopy_lib_arc4.py:219
+    int 2
+    +
+    frame_bury 2
+    // <algopy>/algopy_lib_arc4.py:215
+    frame_dig 0
+    int 1
+    +
+    frame_bury 0
+    b recalculate_array_offsets_static_for_header@4
+
+recalculate_array_offsets_static_after_for@8:
+    // <algopy>/algopy_lib_arc4.py:221
+    frame_dig -3
+    frame_bury 0
     retsub

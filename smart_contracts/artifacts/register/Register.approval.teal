@@ -1,30 +1,42 @@
 #pragma version 10
 
 smart_contracts.register.contract.Register.approval_program:
-    // register/contract.py:13
+    // register/contract.py:16
     // class Register(ARC4Contract):
     txn NumAppArgs
     bz main_bare_routing@5
-    method "register((string,string,string,string,string,string,string)[],(string,string,string,string,string,string,string))string"
+    method "register(string,string,string,string,string,string,string,string)string"
     txna ApplicationArgs 0
     match main_register_route@2
     err // reject transaction
 
 main_register_route@2:
-    // register/contract.py:14
+    // register/contract.py:17
     // @arc4.abimethod()
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // register/contract.py:13
+    // register/contract.py:16
     // class Register(ARC4Contract):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
-    // register/contract.py:14
+    txna ApplicationArgs 3
+    txna ApplicationArgs 4
+    txna ApplicationArgs 5
+    txna ApplicationArgs 6
+    txna ApplicationArgs 7
+    txna ApplicationArgs 8
+    // register/contract.py:17
     // @arc4.abimethod()
     callsub register
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
     byte 0x151f7c75
     swap
     concat
@@ -33,7 +45,7 @@ main_register_route@2:
     return
 
 main_bare_routing@5:
-    // register/contract.py:13
+    // register/contract.py:16
     // class Register(ARC4Contract):
     txn OnCompletion
     !
@@ -45,181 +57,128 @@ main_bare_routing@5:
     return
 
 
-// smart_contracts.register.contract.Register.register(users: bytes, user: bytes) -> bytes:
+// smart_contracts.register.contract.Register.register(id: bytes, name: bytes, sex: bytes, phone_number: bytes, password: bytes, address: bytes, account_address: bytes, mnemonic: bytes) -> bytes:
 register:
-    // register/contract.py:14-15
+    // register/contract.py:17-25
     // @arc4.abimethod()
-    // def register(self, users: arc4.DynamicArray[User],user:User) -> arc4.String:
-    proto 2 1
-    int 0
-    // register/contract.py:16
-    // users_bytes_len = users.bytes.length
+    // def register(self, id: arc4.String,
+    //              name: arc4.String,
+    //              sex: arc4.String,
+    //              phone_number: arc4.String,
+    //              password: arc4.String,
+    //              address: arc4.String,
+    //              account_address: arc4.String,
+    //              mnemonic: arc4.String) -> String:
+    proto 8 1
+    // register/contract.py:27
+    // user = User(id, name, sex, phone_number, password, address, account_address, mnemonic)
+    frame_dig -8
+    len
+    int 16
+    +
+    dup
+    itob
+    extract 6 2
+    byte 0x0010
+    swap
+    concat
+    swap
+    frame_dig -7
+    len
+    +
+    dup
+    itob
+    extract 6 2
+    uncover 2
+    swap
+    concat
+    swap
+    frame_dig -6
+    len
+    +
+    dup
+    itob
+    extract 6 2
+    uncover 2
+    swap
+    concat
+    swap
+    frame_dig -5
+    len
+    +
+    dup
+    itob
+    extract 6 2
+    uncover 2
+    swap
+    concat
+    swap
+    frame_dig -4
+    len
+    +
+    dup
+    itob
+    extract 6 2
+    uncover 2
+    swap
+    concat
+    swap
+    frame_dig -3
+    len
+    +
+    dup
+    itob
+    extract 6 2
+    uncover 2
+    swap
+    concat
+    swap
     frame_dig -2
     len
-    // register/contract.py:18
-    // if op.Box.create(b"users",users_bytes_len):
-    byte "users"
+    +
+    itob
+    extract 6 2
+    concat
+    frame_dig -8
+    concat
+    frame_dig -7
+    concat
+    frame_dig -6
+    concat
+    frame_dig -5
+    concat
+    frame_dig -4
+    concat
+    frame_dig -3
+    concat
+    frame_dig -2
+    concat
+    frame_dig -1
+    concat
+    dup
+    // register/contract.py:29
+    // success = op.Box.create(id.bytes, user.bytes.length)
+    len
+    frame_dig -8
     swap
     box_create
-    bz register_after_if_else@4
-    // register/contract.py:19
-    // users_list_Bytes , existed = op.Box.get(b"users")
-    byte "users"
-    box_get
+    // register/contract.py:30
+    // if success == False:
+    bnz register_else_body@2
+    // register/contract.py:31
+    // return String("User registration failed because existed")
+    byte "User registration failed because existed"
     swap
-    frame_bury 0
-    // register/contract.py:20
-    // if existed:
-    bz register_after_if_else@4
-    // register/contract.py:22
-    // users_list.append(user.copy())
+    retsub
+
+register_else_body@2:
+    // register/contract.py:33
+    // op.Box.put(id.bytes, user.bytes)
+    frame_dig -8
     frame_dig 0
-    frame_dig -1
-    int 1
-    callsub dynamic_array_concat_variable_size
-    // register/contract.py:24
-    // op.Box.put(b"users",users_list_bytes)
-    byte "users"
-    swap
     box_put
-
-register_after_if_else@4:
-    // register/contract.py:25
-    // return arc4.String("ok")
-    byte "\x00\x02ok"
+    // register/contract.py:34
+    // return String("User registration success")
+    byte "User registration success"
     swap
-    retsub
-
-
-// algopy_lib_arc4.dynamic_array_concat_variable_size(source: bytes, new_items_bytes: bytes, new_items_count: uint64) -> bytes:
-dynamic_array_concat_variable_size:
-    // <algopy>/algopy_lib_arc4.py:166-169
-    proto 3 1
-    // <algopy>/algopy_lib_arc4.py:179
-    frame_dig -3
-    int 0
-    extract_uint16
-    // <algopy>/algopy_lib_arc4.py:180
-    dup
-    frame_dig -1
-    +
-    swap
-    // <algopy>/algopy_lib_arc4.py:181
-    int 2
-    *
-    int 2
-    +
-    swap
-    // <algopy>/algopy_lib_arc4.py:183
-    dup
-    itob
-    extract 6 0
-    swap
-    // <algopy>/algopy_lib_arc4.py:185
-    frame_dig -3
-    int 2
-    dig 4
-    substring3
-    // <algopy>/algopy_lib_arc4.py:186
-    frame_dig -1
-    int 2
-    *
-    bzero
-    // <algopy>/algopy_lib_arc4.py:185-186
-    concat
-    // <algopy>/algopy_lib_arc4.py:187
-    frame_dig -3
-    len
-    frame_dig -3
-    uncover 5
-    uncover 2
-    substring3
-    // <algopy>/algopy_lib_arc4.py:185-187
-    concat
-    // <algopy>/algopy_lib_arc4.py:185-188
-    frame_dig -2
-    concat
-    // <algopy>/algopy_lib_arc4.py:183-192
-    swap
-    // <algopy>/algopy_lib_arc4.py:191
-    int 0
-    // <algopy>/algopy_lib_arc4.py:183-192
-    callsub recalculate_array_offsets_static
-    concat
-    retsub
-
-
-// algopy_lib_arc4.recalculate_array_offsets_static(array_data: bytes, length: uint64, start_at_index: uint64) -> bytes:
-recalculate_array_offsets_static:
-    // <algopy>/algopy_lib_arc4.py:195-198
-    proto 3 1
-    byte ""
-    dup
-    // <algopy>/algopy_lib_arc4.py:209
-    frame_dig -1
-    int 2
-    *
-    // <algopy>/algopy_lib_arc4.py:210
-    frame_dig -1
-    bnz recalculate_array_offsets_static_else_body@2
-    // <algopy>/algopy_lib_arc4.py:211
-    frame_dig -2
-    int 2
-    *
-    frame_bury 1
-    b recalculate_array_offsets_static_after_if_else@3
-
-recalculate_array_offsets_static_else_body@2:
-    // <algopy>/algopy_lib_arc4.py:213
-    frame_dig -3
-    frame_dig 2
-    extract_uint16
-    frame_bury 1
-
-recalculate_array_offsets_static_after_if_else@3:
-    frame_dig -1
-    frame_bury 0
-
-recalculate_array_offsets_static_for_header@4:
-    // <algopy>/algopy_lib_arc4.py:215
-    frame_dig 0
-    frame_dig -2
-    <
-    bz recalculate_array_offsets_static_after_for@8
-    // <algopy>/algopy_lib_arc4.py:216
-    frame_dig 1
-    dup
-    itob
-    extract 6 0
-    // <algopy>/algopy_lib_arc4.py:217
-    frame_dig -3
-    frame_dig 2
-    dup
-    cover 4
-    uncover 2
-    replace3
-    dup
-    frame_bury -3
-    // <algopy>/algopy_lib_arc4.py:218
-    dig 1
-    extract_uint16
-    int 2
-    +
-    +
-    frame_bury 1
-    // <algopy>/algopy_lib_arc4.py:219
-    int 2
-    +
-    frame_bury 2
-    // <algopy>/algopy_lib_arc4.py:215
-    frame_dig 0
-    int 1
-    +
-    frame_bury 0
-    b recalculate_array_offsets_static_for_header@4
-
-recalculate_array_offsets_static_after_for@8:
-    // <algopy>/algopy_lib_arc4.py:221
-    frame_dig -3
-    frame_bury 0
     retsub

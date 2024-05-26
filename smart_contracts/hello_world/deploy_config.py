@@ -28,10 +28,17 @@ def deploy(
         on_schema_break=algokit_utils.OnSchemaBreak.AppendApp,
         on_update=algokit_utils.OnUpdate.AppendApp,
     )
-    name = "world"
-    response = app_client.hello(name=name)
+    name = "IF7ZNVFYFWQDZ6VVJDBXZE7XV2OQDSV72QS5U7ZXXU5AS5TEOXAU5ERMEE"
+    #name = "world"
+    print(len(name.encode('utf-8')))
+    response = app_client.hello(name=name,id = "123")
+    if response.return_value is "":
+        print("empty string response")
+    else:
+        print(response.return_value)
     logger.info(
         f"Called hello on {app_spec.contract.name} ({app_client.app_id}) "
         f"with name={name}, received: {response.return_value}"
     )
+
 

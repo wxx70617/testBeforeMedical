@@ -1,3 +1,4 @@
+
 from algopy import *
 
 
@@ -8,18 +9,27 @@ class User(arc4.Struct):
     phone_number: arc4.String
     password: arc4.String
     address: arc4.String
-    mnemonic:arc4.String
+    account_address: arc4.String
+    mnemonic: arc4.String
+
 
 class Register(ARC4Contract):
     @arc4.abimethod()
-    def register(self, users: arc4.DynamicArray[User],user:User) -> arc4.String:
-        users_bytes_len = users.bytes.length
+    def register(self, id: arc4.String,
+                 name: arc4.String,
+                 sex: arc4.String,
+                 phone_number: arc4.String,
+                 password: arc4.String,
+                 address: arc4.String,
+                 account_address: arc4.String,
+                 mnemonic: arc4.String) -> String:
 
-        if op.Box.create(b"users",users_bytes_len):
-            users_list_Bytes , existed = op.Box.get(b"users")
-            if existed:
-                users_list = arc4.DynamicArray[User].from_bytes(users_list_Bytes)
-                users_list.append(user.copy())
-                users_list_bytes = users_list.bytes
-                op.Box.put(b"users",users_list_bytes)
-        return arc4.String("ok")
+        user = User(id, name, sex, phone_number, password, address, account_address, mnemonic)
+
+        success = op.Box.create(id.bytes, user.bytes.length)
+
+        if success == False:
+            return String("User registration failed because existed")
+        else:
+            op.Box.put(id.bytes, user.bytes)
+            return String("User registration success")

@@ -18,6 +18,7 @@ def deploy(
     from smart_contracts.artifacts.register.client import (
     RegisterClient,
     )
+
     app_client = RegisterClient(
         algod_client,
         creator=deployer,
@@ -28,7 +29,7 @@ def deploy(
         on_schema_break=algokit_utils.OnSchemaBreak.AppendApp,
         on_update=algokit_utils.OnUpdate.AppendApp,
     )
-    name = "wxx"
+    name = "wxx test register"
     id = "230000199999993333"
     sex = "male"
 
@@ -36,12 +37,12 @@ def deploy(
     password = "password"
     address = "address"
     mnemonic = "mnemonic"
-    user = User(id,name,sex,phone_number,password, address, mnemonic)
-    user_list = []
-    response = app_client.register(users = user_list,user=user)
-    logger.info(
-        f"Called register on {app_spec.contract.name} ({app_client.app_id}) "
-        f"with user={user}, received: {response.return_value}"
-    )
-    print(user)
-    print(response.return_value)
+    #user = User(id,name,sex,phone_number,password, address, mnemonic)
+    #response = app_client.register(id=id,name=name,sex=sex,phone_number=phone_number,password = password,address = address,mnemonic = mnemonic)
+    #response = app_client.register(name=name)
+    # logger.info(
+    #     f"Called register on {app_spec.contract.name} ({app_client.app_id}) "
+    #     f"with user={user.name}, received: {response.return_value}"
+    # )
+    # print(user.name)
+    # #print(response.return_value)
