@@ -3,11 +3,13 @@ from algopy import *
 
 class Authorization(ARC4Contract):
     @arc4.abimethod()
-    def authorization_or_revoke(self, executor: arc4.String, executee: arc4.String,method: arc4.String) -> String:
+    def authorization(self, executor: arc4.String, executee: arc4.String,method: arc4.String) -> String:
         if method == "revoke":
             return revoke(executor, executee)
         elif method == "authorization":
             return authorization(executor, executee)
+        elif method == "check":
+            return check_authorization(executor, executee)
         else:
             return String("Invalid method")
 
@@ -40,3 +42,14 @@ def revoke(revoker: arc4.String, revoked: arc4.String) -> String:
         return String("Revoke Authorization success")
     else:
         return String("Revoce Authorization failure")
+
+
+@subroutine
+def check_authorization(executor: arc4.String, executee: arc4.String)->String:
+    authorization_list_bytes, existed = op.Box.get(executor.bytes)
+    if existed == True:
+        authorization_list = arc4.DynamicArray[arc4.String].from_bytes(authorization_list_bytes)
+        for address in authorization_list:
+            if address == executee:
+                return String("Authorised")
+    return String("No Authorisation")

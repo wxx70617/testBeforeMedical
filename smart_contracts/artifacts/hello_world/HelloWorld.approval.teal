@@ -1,28 +1,30 @@
 #pragma version 10
 
 smart_contracts.hello_world.contract.HelloWorld.approval_program:
-    // hello_world/contract.py:7
+    // hello_world/contract.py:10
     // class HelloWorld(ARC4Contract):
     txn NumAppArgs
     bz main_bare_routing@5
-    method "hello(string,string)string"
+    method "hello(string,string,string,string)string"
     txna ApplicationArgs 0
     match main_hello_route@2
     err // reject transaction
 
 main_hello_route@2:
-    // hello_world/contract.py:8
+    // hello_world/contract.py:11
     // @arc4.abimethod()
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // hello_world/contract.py:7
+    // hello_world/contract.py:10
     // class HelloWorld(ARC4Contract):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
-    // hello_world/contract.py:8
+    txna ApplicationArgs 3
+    txna ApplicationArgs 4
+    // hello_world/contract.py:11
     // @arc4.abimethod()
     callsub hello
     dup
@@ -39,7 +41,7 @@ main_hello_route@2:
     return
 
 main_bare_routing@5:
-    // hello_world/contract.py:7
+    // hello_world/contract.py:10
     // class HelloWorld(ARC4Contract):
     txn OnCompletion
     !
@@ -51,100 +53,113 @@ main_bare_routing@5:
     return
 
 
-// smart_contracts.hello_world.contract.HelloWorld.hello(name: bytes, id: bytes) -> bytes:
+// smart_contracts.hello_world.contract.HelloWorld.hello(uploader_id: bytes, patient_id: bytes, file_id: bytes, file_address: bytes) -> bytes:
 hello:
-    // hello_world/contract.py:8-9
+    // hello_world/contract.py:11-12
     // @arc4.abimethod()
-    // def hello(self,name: arc4.String,id: arc4.String) -> String:
-    proto 2 1
-    // hello_world/contract.py:10
-    // lists = arc4.DynamicArray[arc4.String]()
-    byte 0x0000
-    // hello_world/contract.py:15
-    // lists.append(name)
+    // def hello(self,uploader_id: arc4.String,patient_id: arc4.String,file_id:arc4.String,file_address:arc4.String) -> String:
+    proto 4 1
+    // hello_world/contract.py:18
+    // store_info1 = StoreInfo(uploader_id,patient_id,file_id,file_address)
+    frame_dig -4
+    len
+    int 8
+    +
+    dup
+    itob
+    extract 6 2
+    byte 0x0008
+    swap
+    concat
+    swap
+    frame_dig -3
+    len
+    +
+    dup
+    itob
+    extract 6 2
+    uncover 2
+    swap
+    concat
+    swap
     frame_dig -2
-    int 1
-    callsub dynamic_array_concat_variable_size
-    // hello_world/contract.py:16
-    // lists.append(name)
+    len
+    +
+    itob
+    extract 6 2
+    concat
+    frame_dig -4
+    concat
+    frame_dig -3
+    concat
     frame_dig -2
-    int 1
-    callsub dynamic_array_concat_variable_size
-    // hello_world/contract.py:17
-    // lists.append(name)
-    frame_dig -2
-    int 1
-    callsub dynamic_array_concat_variable_size
-    // hello_world/contract.py:18-19
-    // #success = op.Box.create(id.bytes,200)
-    // user = User(id)
-    byte 0x0002
+    concat
+    dup
     frame_dig -1
     concat
     swap
+    // hello_world/contract.py:19
+    // file_address2 = arc4.String("QmcRD4wkPPi6dig81r5sLj9Zm1gDCL4zgpEj9CfuRrGwxx")
+    byte "\x00.QmcRD4wkPPi6dig81r5sLj9Zm1gDCL4zgpEj9CfuRrGwxx"
     // hello_world/contract.py:20
-    // contents2 = lists[0]
-    dup
-    int 0
-    extract_uint16
-    dup
-    cover 2
-    assert // Index access is out of bounds
-    extract 2 0
-    // hello_world/contract.py:21-22
-    // #contents2 = arc4.String.from_bytes(lists.bytes)
+    // store_info2 = StoreInfo(uploader_id,patient_id,file_id,file_address2)
+    concat
+    swap
+    // hello_world/contract.py:13
+    // lists = arc4.DynamicArray[StoreInfo]()
+    byte 0x0000
+    // hello_world/contract.py:22
+    // lists.append(store_info1.copy())
+    swap
+    int 1
+    callsub dynamic_array_concat_variable_size
+    // hello_world/contract.py:23
+    // lists.append(store_info2.copy())
+    swap
+    int 1
+    callsub dynamic_array_concat_variable_size
+    // hello_world/contract.py:24-31
+    // #item = lists.pop()
+    // # lists.append(name)
+    // # lists.append(name)
+    // #success = op.Box.create(id.bytes,200)
+    // # user = User(id)
+    // # contents2 = lists[0]
+    // # #contents2 = arc4.String.from_bytes(lists.bytes)
     // results = String()
     byte ""
-    int 0
 
-hello_for_header@1:
-    // hello_world/contract.py:23
-    // for item in lists:
-    frame_dig 4
-    frame_dig 1
-    <
-    bz hello_after_for@4
-    frame_dig 4
-    dup
-    int 2
-    *
-    frame_dig 2
-    dup
-    uncover 2
-    extract_uint16
-    dup2
-    extract_uint16
-    int 2
-    +
-    extract3
-    // hello_world/contract.py:24
-    // results = String(",").join((item.native,results))
-    extract 2 0
-    byte ","
-    concat
-    frame_dig 3
-    concat
-    frame_bury 3
-    int 1
-    +
-    frame_bury 4
-    b hello_for_header@1
-
-hello_after_for@4:
-    // hello_world/contract.py:26
-    // return user.id.native
+hello_while_top@1:
+    // hello_world/contract.py:34
+    // results = String(",").join((lists[i].file_address.native,results))
     frame_dig 0
     dup
     int 0
     extract_uint16
+    assert // Index access is out of bounds
+    extract 2 0
+    dup
+    int 0
+    extract_uint16
+    dup2
+    extract_uint16
+    int 2
+    +
+    extract3
+    dup
+    int 6
+    extract_uint16
     dup2
     extract_uint16
     int 2
     +
     extract3
     extract 2 0
-    frame_bury 0
-    retsub
+    byte ","
+    concat
+    swap
+    concat
+    b hello_while_top@1
 
 
 // algopy_lib_arc4.dynamic_array_concat_variable_size(source: bytes, new_items_bytes: bytes, new_items_count: uint64) -> bytes:
